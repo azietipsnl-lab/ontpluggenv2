@@ -1,0 +1,113 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { loadQuery } from '../../sanity/load';
+import { postsQuery } from '../../sanity/queries';
+import type { PostListItem } from '../../sanity/types';
+import { formatDate } from '../../lib/format';
+
+let posts: PostListItem[] = [];
+try {
+	posts = (await loadQuery<PostListItem[]>(postsQuery)) ?? [];
+} catch {
+	posts = [];
+}
+---
+
+<Layout
+	title="Magazine"
+	description="Artikelen over bewuste technologie, rust en digitaal welzijn."
+>
+	<main class="section">
+		<div class="container">
+			<header class="page-head stack">
+				<p class="eyebrow">Magazine</p>
+				<h1>Verhalen over bewust ontkoppelen</h1>
+			</header>
+
+			{
+				posts.length === 0 ? (
+					<p class="empty">Er zijn nog geen artikelen gepubliceerd.</p>
+				) : (
+					<ul class="post-grid">
+						{posts.map((post) => (
+							<li class="post-card">
+								<a href={`/blog/${post.slug}`} class="post-card__link">
+									{post.coverImage?.url && (
+										<img
+											class="post-card__img"
+											src={post.coverImage.url}
+											alt={post.coverImage.alt}
+											loading="lazy"
+											decoding="async"
+										/>
+									)}
+									<div class="post-card__body stack">
+										<p class="post-card__meta">
+											{formatDate(post.publishedAt)}
+											{post.author?.name && <> · {post.author.name}</>}
+										</p>
+										<h2 class="post-card__title">{post.title}</h2>
+										{post.excerpt && (
+											<p class="post-card__excerpt">{post.excerpt}</p>
+										)}
+									</div>
+								</a>
+							</li>
+						))}
+					</ul>
+				)
+			}
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.page-head {
+		margin-bottom: var(--space-16);
+	}
+
+	.empty {
+		color: var(--text-muted);
+	}
+
+	.post-grid {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+		gap: var(--space-12);
+	}
+
+	.post-card__link {
+		display: block;
+		color: inherit;
+	}
+
+	.post-card__img {
+		width: 100%;
+		aspect-ratio: 3 / 2;
+		object-fit: cover;
+		border-radius: var(--radius-lg);
+		margin-bottom: var(--space-4);
+	}
+
+	.post-card__meta {
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.post-card__title {
+		font-size: var(--text-xl);
+		transition: color var(--duration) var(--ease);
+	}
+
+	.post-card__link:hover .post-card__title {
+		color: var(--accent);
+	}
+
+	.post-card__excerpt {
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+	}
+</style>
