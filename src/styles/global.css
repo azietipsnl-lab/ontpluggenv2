@@ -228,6 +228,21 @@ a:hover {
 	margin-top: var(--space-4);
 }
 
+/* Responsive card grid, shared by listings. */
+.card-grid {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	gap: var(--space-8);
+	grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
+.card-grid--wide {
+	gap: var(--space-12);
+	grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+}
+
 .visually-hidden {
 	position: absolute;
 	width: 1px;

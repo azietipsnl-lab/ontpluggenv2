@@ -1,0 +1,82 @@
+---
+import type { Category } from '../sanity/types';
+
+interface Props {
+	categories: Category[];
+	/** Slug of the active category, or undefined on the "all" view. */
+	active?: string;
+}
+
+const { categories, active } = Astro.props;
+
+if (categories.length === 0) return Astro.slots.render('default');
+---
+
+<nav class="category-nav" aria-label="Filter op categorie">
+	<ul>
+		<li>
+			<a href="/blog" aria-current={active ? undefined : 'page'}>Alle</a>
+		</li>
+		{
+			categories.map((cat) => (
+				<li>
+					<a
+						href={`/blog/category/${cat.slug}`}
+						aria-current={active === cat.slug ? 'page' : undefined}
+					>
+						{cat.title}
+						{typeof cat.count === 'number' && (
+							<span class="category-nav__count">{cat.count}</span>
+						)}
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</nav>
+
+<style>
+	.category-nav {
+		margin-block: var(--space-4) var(--space-12);
+	}
+
+	.category-nav ul {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.category-nav a {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-2) var(--space-4);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-pill);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		transition:
+			color var(--duration) var(--ease),
+			background-color var(--duration) var(--ease),
+			border-color var(--duration) var(--ease);
+	}
+
+	.category-nav a:hover {
+		color: var(--accent);
+		border-color: var(--color-forest-300);
+	}
+
+	.category-nav a[aria-current='page'] {
+		background-color: var(--accent);
+		border-color: var(--accent);
+		color: var(--accent-contrast);
+	}
+
+	.category-nav__count {
+		font-size: var(--text-xs);
+		opacity: 0.7;
+	}
+</style>

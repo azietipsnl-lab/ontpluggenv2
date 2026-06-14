@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import Card from '../../components/Card.astro';
 import { loadQuery } from '../../sanity/load';
 import { programsQuery } from '../../sanity/queries';
 import type { ProgramListItem } from '../../sanity/types';
@@ -34,35 +35,25 @@ const levelLabels: Record<string, string> = {
 				programs.length === 0 ? (
 					<p class="empty">Er zijn nog geen programma's beschikbaar.</p>
 				) : (
-					<ul class="program-grid">
+					<ul class="card-grid">
 						{programs.map((program) => (
-							<li class="program-card">
-								<a href={`/programs/${program.slug}`} class="program-card__link">
-									{program.coverImage?.url && (
-										<img
-											class="program-card__img"
-											src={program.coverImage.url}
-											alt={program.coverImage.alt}
-											loading="lazy"
-											decoding="async"
-										/>
-									)}
-									<div class="program-card__body stack">
-										<h2 class="program-card__title">{program.title}</h2>
-										{program.summary && (
-											<p class="program-card__summary">{program.summary}</p>
+							<li>
+								<Card
+									href={`/programs/${program.slug}`}
+									title={program.title}
+									image={program.coverImage}
+									imageAspect="4 / 3"
+									description={program.summary}
+									variant="boxed"
+								>
+									<Fragment slot="footer">
+										{program.level && (
+											<span>{levelLabels[program.level] ?? program.level}</span>
 										)}
-										<p class="program-card__meta">
-											{program.level && (
-												<span>{levelLabels[program.level] ?? program.level}</span>
-											)}
-											{program.duration && <span>{program.duration}</span>}
-											<span class="program-card__price">
-												{formatPrice(program.price)}
-											</span>
-										</p>
-									</div>
-								</a>
+										{program.duration && <span>{program.duration}</span>}
+										<span class="program-price">{formatPrice(program.price)}</span>
+									</Fragment>
+								</Card>
 							</li>
 						))}
 					</ul>
@@ -81,62 +72,7 @@ const levelLabels: Record<string, string> = {
 		color: var(--text-muted);
 	}
 
-	.program-grid {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-		gap: var(--space-8);
-	}
-
-	.program-card {
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-		background-color: var(--surface);
-		transition: box-shadow var(--duration) var(--ease);
-	}
-
-	.program-card:hover {
-		box-shadow: var(--shadow-md);
-	}
-
-	.program-card__link {
-		display: block;
-		color: inherit;
-	}
-
-	.program-card__img {
-		width: 100%;
-		aspect-ratio: 4 / 3;
-		object-fit: cover;
-	}
-
-	.program-card__body {
-		padding: var(--space-6);
-	}
-
-	.program-card__title {
-		font-size: var(--text-xl);
-	}
-
-	.program-card__summary {
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-	}
-
-	.program-card__meta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-3);
-		align-items: center;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-		margin-top: var(--space-2);
-	}
-
-	.program-card__price {
+	.program-price {
 		margin-left: auto;
 		font-weight: var(--weight-semibold);
 		color: var(--accent);

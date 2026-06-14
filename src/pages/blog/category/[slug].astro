@@ -1,0 +1,90 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Card from '../../../components/Card.astro';
+import CategoryNav from '../../../components/CategoryNav.astro';
+import { loadQuery } from '../../../sanity/load';
+import {
+	categorySlugsQuery,
+	categoryBySlugQuery,
+	categoriesQuery,
+	postsByCategoryQuery,
+} from '../../../sanity/queries';
+import type { PostListItem, Category } from '../../../sanity/types';
+import { formatDate } from '../../../lib/format';
+
+export async function getStaticPaths() {
+	let slugs: string[] = [];
+	try {
+		slugs = (await loadQuery<string[]>(categorySlugsQuery)) ?? [];
+	} catch {
+		slugs = [];
+	}
+	return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+
+const [category, posts, categories] = await Promise.all([
+	loadQuery<Category | null>(categoryBySlugQuery, { slug }),
+	loadQuery<PostListItem[]>(postsByCategoryQuery, { slug }).then((r) => r ?? []),
+	loadQuery<Category[]>(categoriesQuery).then((r) => r ?? []),
+]);
+
+if (!category) {
+	return Astro.redirect('/blog');
+}
+
+function meta(post: PostListItem): string {
+	return [formatDate(post.publishedAt), post.author?.name]
+		.filter(Boolean)
+		.join(' · ');
+}
+---
+
+<Layout
+	title={`Magazine — ${category.title}`}
+	description={category.description ??
+		`Artikelen in de categorie ${category.title}.`}
+>
+	<main class="section">
+		<div class="container">
+			<header class="page-head stack">
+				<p class="eyebrow">Categorie</p>
+				<h1>{category.title}</h1>
+				{category.description && <p class="lead">{category.description}</p>}
+			</header>
+
+			<CategoryNav categories={categories} active={category.slug} />
+
+			{
+				posts.length === 0 ? (
+					<p class="empty">Er zijn nog geen artikelen in deze categorie.</p>
+				) : (
+					<ul class="card-grid card-grid--wide">
+						{posts.map((post) => (
+							<li>
+								<Card
+									href={`/blog/${post.slug}`}
+									title={post.title}
+									image={post.coverImage}
+									eyebrow={meta(post)}
+									description={post.excerpt}
+								/>
+							</li>
+						))}
+					</ul>
+				)
+			}
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.page-head {
+		margin-bottom: var(--space-8);
+	}
+
+	.empty {
+		color: var(--text-muted);
+	}
+</style>

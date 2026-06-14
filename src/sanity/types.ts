@@ -40,6 +40,13 @@ export interface SiteSettings {
 	seo?: SeoData;
 }
 
+export interface Category {
+	title: string;
+	slug: string;
+	description?: string;
+	count?: number;
+}
+
 export interface PageDoc {
 	title: string;
 	heading?: string;
