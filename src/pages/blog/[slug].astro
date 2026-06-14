@@ -1,0 +1,123 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PortableText from '../../components/PortableText.astro';
+import { loadQuery } from '../../sanity/load';
+import { postSlugsQuery, postBySlugQuery } from '../../sanity/queries';
+import type { PostDoc } from '../../sanity/types';
+import { formatDate } from '../../lib/format';
+
+export async function getStaticPaths() {
+	let slugs: string[] = [];
+	try {
+		slugs = (await loadQuery<string[]>(postSlugsQuery)) ?? [];
+	} catch {
+		slugs = [];
+	}
+	return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const post = await loadQuery<PostDoc | null>(postBySlugQuery, { slug });
+
+if (!post) {
+	return Astro.redirect('/blog');
+}
+---
+
+<Layout title={post.title} description={post.excerpt} seo={post.seo}>
+	<main class="section">
+		<article class="container container--narrow">
+			<header class="article-head stack">
+				<p class="article-meta">
+					{formatDate(post.publishedAt)}
+					{post.author?.name && <> · {post.author.name}</>}
+				</p>
+				<h1>{post.title}</h1>
+				{post.excerpt && <p class="lead">{post.excerpt}</p>}
+			</header>
+
+			{
+				post.coverImage?.url && (
+					<img
+						class="article-cover"
+						src={post.coverImage.url}
+						alt={post.coverImage.alt}
+						loading="eager"
+						decoding="async"
+					/>
+				)
+			}
+
+			<PortableText value={post.body} />
+
+			{
+				post.author?.bio && (
+					<footer class="article-author">
+						{post.author.image?.url && (
+							<img
+								class="article-author__img"
+								src={post.author.image.url}
+								alt={post.author.image.alt}
+								loading="lazy"
+							/>
+						)}
+						<div>
+							<p class="article-author__name">{post.author.name}</p>
+							<p class="article-author__bio">{post.author.bio}</p>
+						</div>
+					</footer>
+				)
+			}
+
+			<p class="article-back"><a href="/blog">← Terug naar het magazine</a></p>
+		</article>
+	</main>
+</Layout>
+
+<style>
+	.article-head {
+		margin-bottom: var(--space-8);
+	}
+
+	.article-meta {
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.article-cover {
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+		border-radius: var(--radius-lg);
+		margin-bottom: var(--space-12);
+	}
+
+	.article-author {
+		display: flex;
+		gap: var(--space-4);
+		align-items: center;
+		margin-top: var(--space-16);
+		padding-top: var(--space-8);
+		border-top: 1px solid var(--border);
+	}
+
+	.article-author__img {
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-pill);
+		object-fit: cover;
+	}
+
+	.article-author__name {
+		font-weight: var(--weight-semibold);
+	}
+
+	.article-author__bio {
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+	}
+
+	.article-back {
+		margin-top: var(--space-16);
+	}
+</style>

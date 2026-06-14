@@ -1,0 +1,102 @@
+---
+import type { SiteSettings } from '../sanity/types';
+import { resolveNavLink, isExternal } from '../lib/links';
+
+interface Props {
+	settings: SiteSettings | null;
+}
+
+const { settings } = Astro.props;
+
+const siteTitle = settings?.title ?? 'Ontpluggen';
+const nav = settings?.primaryNav ?? [];
+const currentPath = Astro.url.pathname;
+---
+
+<header class="site-header">
+	<div class="container site-header__inner">
+		<a class="site-header__brand" href="/">{siteTitle}</a>
+
+		{
+			nav.length > 0 && (
+				<nav class="site-nav" aria-label="Hoofdnavigatie">
+					<ul class="site-nav__list">
+						{nav.map((link) => {
+							const href = resolveNavLink(link);
+							const external = isExternal(href);
+							const active =
+								href !== '/' && currentPath.startsWith(href)
+									? 'page'
+									: href === currentPath
+										? 'page'
+										: undefined;
+							return (
+								<li>
+									<a
+										href={href}
+										aria-current={active}
+										{...(external
+											? { target: '_blank', rel: 'noopener noreferrer' }
+											: {})}
+									>
+										{link.label}
+									</a>
+								</li>
+							);
+						})}
+					</ul>
+				</nav>
+			)
+		}
+	</div>
+</header>
+
+<style>
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		background-color: color-mix(in srgb, var(--bg) 88%, transparent);
+		backdrop-filter: blur(8px);
+		border-bottom: 1px solid var(--border);
+	}
+
+	.site-header__inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-6);
+		min-height: 4.5rem;
+	}
+
+	.site-header__brand {
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		letter-spacing: var(--tracking-tight);
+		color: var(--text);
+	}
+
+	.site-header__brand:hover {
+		color: var(--accent);
+	}
+
+	.site-nav__list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-6);
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.site-nav a {
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+		font-weight: var(--weight-medium);
+	}
+
+	.site-nav a:hover,
+	.site-nav a[aria-current='page'] {
+		color: var(--accent);
+	}
+</style>

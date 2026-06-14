@@ -12,6 +12,20 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.4.6"
+    "@astrojs/react": "^5.0.7",
+    "@astrojs/rss": "^4.0.18",
+    "@astrojs/sitemap": "^3.7.3",
+    "@portabletext/to-html": "^5.0.2",
+    "@sanity/astro": "^3.4.1",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/vision": "^6.0.0",
+    "astro": "^6.4.6",
+    "groq": "^6.0.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "sanity": "^6.0.0"
+  },
+  "devDependencies": {
+    "@portabletext/types": "^4.0.2"
   }
 }

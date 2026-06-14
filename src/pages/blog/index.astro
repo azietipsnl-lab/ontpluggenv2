@@ -1,0 +1,73 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Card from '../../components/Card.astro';
+import CategoryNav from '../../components/CategoryNav.astro';
+import { loadQuery } from '../../sanity/load';
+import { postsQuery, categoriesQuery } from '../../sanity/queries';
+import type { PostListItem, Category } from '../../sanity/types';
+import { formatDate } from '../../lib/format';
+
+let posts: PostListItem[] = [];
+let categories: Category[] = [];
+try {
+	[posts, categories] = await Promise.all([
+		loadQuery<PostListItem[]>(postsQuery).then((r) => r ?? []),
+		loadQuery<Category[]>(categoriesQuery).then((r) => r ?? []),
+	]);
+} catch {
+	posts = [];
+	categories = [];
+}
+
+function meta(post: PostListItem): string {
+	return [formatDate(post.publishedAt), post.author?.name]
+		.filter(Boolean)
+		.join(' · ');
+}
+---
+
+<Layout
+	title="Magazine"
+	description="Artikelen over bewuste technologie, rust en digitaal welzijn."
+>
+	<main class="section">
+		<div class="container">
+			<header class="page-head stack">
+				<p class="eyebrow">Magazine</p>
+				<h1>Verhalen over bewust ontkoppelen</h1>
+			</header>
+
+			<CategoryNav categories={categories} />
+
+			{
+				posts.length === 0 ? (
+					<p class="empty">Er zijn nog geen artikelen gepubliceerd.</p>
+				) : (
+					<ul class="card-grid card-grid--wide">
+						{posts.map((post) => (
+							<li>
+								<Card
+									href={`/blog/${post.slug}`}
+									title={post.title}
+									image={post.coverImage}
+									eyebrow={meta(post)}
+									description={post.excerpt}
+								/>
+							</li>
+						))}
+					</ul>
+				)
+			}
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.page-head {
+		margin-bottom: var(--space-8);
+	}
+
+	.empty {
+		color: var(--text-muted);
+	}
+</style>

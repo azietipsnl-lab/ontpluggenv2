@@ -1,0 +1,117 @@
+---
+import type { SanityImage } from '../sanity/types';
+
+interface Props {
+	href: string;
+	title: string;
+	image?: SanityImage;
+	/** CSS aspect-ratio for the cover, e.g. "3 / 2" or "4 / 3". */
+	imageAspect?: string;
+	/** Small muted line shown above the title (date, author, etc.). */
+	eyebrow?: string;
+	description?: string;
+	/** "plain" for borderless (blog), "boxed" for a bordered card (programs). */
+	variant?: 'plain' | 'boxed';
+}
+
+const {
+	href,
+	title,
+	image,
+	imageAspect = '3 / 2',
+	eyebrow,
+	description,
+	variant = 'plain',
+} = Astro.props;
+
+const hasFooter = Astro.slots.has('footer');
+---
+
+<article class:list={['card', `card--${variant}`]}>
+	<a href={href} class="card__link">
+		{
+			image?.url && (
+				<img
+					class="card__img"
+					src={image.url}
+					alt={image.alt}
+					style={`aspect-ratio: ${imageAspect}`}
+					loading="lazy"
+					decoding="async"
+				/>
+			)
+		}
+		<div class="card__body stack">
+			{eyebrow && <p class="card__eyebrow">{eyebrow}</p>}
+			<h2 class="card__title">{title}</h2>
+			{description && <p class="card__desc">{description}</p>}
+			{hasFooter && <div class="card__footer"><slot name="footer" /></div>}
+		</div>
+	</a>
+</article>
+
+<style>
+	.card {
+		color: inherit;
+	}
+
+	.card--boxed {
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		overflow: hidden;
+		background-color: var(--surface);
+		transition: box-shadow var(--duration) var(--ease);
+	}
+
+	.card--boxed:hover {
+		box-shadow: var(--shadow-md);
+	}
+
+	.card__link {
+		display: block;
+		color: inherit;
+	}
+
+	.card__img {
+		width: 100%;
+		object-fit: cover;
+	}
+
+	.card--plain .card__img {
+		border-radius: var(--radius-lg);
+		margin-bottom: var(--space-4);
+	}
+
+	.card--boxed .card__body {
+		padding: var(--space-6);
+	}
+
+	.card__eyebrow {
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.card__title {
+		font-size: var(--text-xl);
+		transition: color var(--duration) var(--ease);
+	}
+
+	.card__link:hover .card__title {
+		color: var(--accent);
+	}
+
+	.card__desc {
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+	}
+
+	.card__footer {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+		align-items: center;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		margin-top: var(--space-2);
+	}
+</style>

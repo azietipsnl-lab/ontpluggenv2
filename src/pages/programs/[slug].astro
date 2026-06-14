@@ -1,0 +1,130 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PortableText from '../../components/PortableText.astro';
+import { loadQuery } from '../../sanity/load';
+import { programSlugsQuery, programBySlugQuery } from '../../sanity/queries';
+import type { ProgramDoc } from '../../sanity/types';
+import { formatPrice } from '../../lib/format';
+
+export async function getStaticPaths() {
+	let slugs: string[] = [];
+	try {
+		slugs = (await loadQuery<string[]>(programSlugsQuery)) ?? [];
+	} catch {
+		slugs = [];
+	}
+	return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const program = await loadQuery<ProgramDoc | null>(programBySlugQuery, { slug });
+
+if (!program) {
+	return Astro.redirect('/programs');
+}
+
+const levelLabels: Record<string, string> = {
+	beginner: 'Beginner',
+	intermediate: 'Gevorderd',
+	advanced: 'Expert',
+};
+---
+
+<Layout title={program.title} description={program.summary} seo={program.seo}>
+	<main class="section">
+		<article class="container container--narrow">
+			<header class="program-head stack">
+				<p class="eyebrow">Programma</p>
+				<h1>{program.title}</h1>
+				{program.summary && <p class="lead">{program.summary}</p>}
+			</header>
+
+			<dl class="program-facts">
+				{
+					program.level && (
+						<div>
+							<dt>Niveau</dt>
+							<dd>{levelLabels[program.level] ?? program.level}</dd>
+						</div>
+					)
+				}
+				{
+					program.duration && (
+						<div>
+							<dt>Duur</dt>
+							<dd>{program.duration}</dd>
+						</div>
+					)
+				}
+				<div>
+					<dt>Prijs</dt>
+					<dd>{formatPrice(program.price)}</dd>
+				</div>
+			</dl>
+
+			{
+				program.coverImage?.url && (
+					<img
+						class="program-cover"
+						src={program.coverImage.url}
+						alt={program.coverImage.alt}
+						loading="eager"
+						decoding="async"
+					/>
+				)
+			}
+
+			<PortableText value={program.body} />
+
+			<div class="program-cta">
+				<a class="button button--primary" href="#">Schrijf je in</a>
+			</div>
+
+			<p class="program-back"><a href="/programs">← Alle programma's</a></p>
+		</article>
+	</main>
+</Layout>
+
+<style>
+	.program-head {
+		margin-bottom: var(--space-8);
+	}
+
+	.program-facts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-12);
+		margin: 0 0 var(--space-12);
+		padding-block: var(--space-6);
+		border-block: 1px solid var(--border);
+	}
+
+	.program-facts dt {
+		font-size: var(--text-xs);
+		letter-spacing: var(--tracking-wide);
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+
+	.program-facts dd {
+		margin: var(--space-1) 0 0;
+		font-size: var(--text-lg);
+		font-family: var(--font-display);
+	}
+
+	.program-cover {
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+		border-radius: var(--radius-lg);
+		margin-bottom: var(--space-12);
+	}
+
+	.program-cta {
+		margin-top: var(--space-12);
+	}
+
+	.program-back {
+		margin-top: var(--space-16);
+	}
+</style>

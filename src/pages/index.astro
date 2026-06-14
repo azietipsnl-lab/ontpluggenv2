@@ -1,11 +1,62 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import PortableText from '../components/PortableText.astro';
+import { loadQuery } from '../sanity/load';
+import { pageBySlugQuery } from '../sanity/queries';
+import type { PageDoc } from '../sanity/types';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+let page: PageDoc | null = null;
+try {
+	page = await loadQuery<PageDoc | null>(pageBySlugQuery, { slug: 'home' });
+} catch {
+	page = null;
+}
+
+// Fallbacks so the site renders before a "home" page exists in Sanity.
+const eyebrow = 'Digitaal welzijn';
+const heading = page?.heading ?? page?.title ?? 'Ontkoppel bewust. Leef met aandacht.';
+const subheading =
+	page?.subheading ??
+	'Ontpluggen helpt je een rustigere, intentionelere relatie met technologie op te bouwen — zonder ruis, zonder schuldgevoel.';
 ---
 
-<Layout>
-	<Welcome />
+<Layout title={page?.title} seo={page?.seo}>
+	<main>
+		<section class="hero section">
+			<div class="container container--narrow stack">
+				<p class="eyebrow">{eyebrow}</p>
+				<h1>{heading}</h1>
+				<p class="lead">{subheading}</p>
+				<div class="hero__actions">
+					<a class="button button--primary" href="/programs">Bekijk programma's</a>
+					<a class="button button--ghost" href="/blog">Lees het magazine</a>
+				</div>
+			</div>
+		</section>
+
+		{
+			page?.body && (
+				<section class="section">
+					<div class="container container--narrow">
+						<PortableText value={page.body} />
+					</div>
+				</section>
+			)
+		}
+	</main>
 </Layout>
+
+<style>
+	.hero {
+		display: flex;
+		align-items: center;
+		min-height: 70vh;
+	}
+
+	.hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-4);
+		margin-top: var(--space-8);
+	}
+</style>

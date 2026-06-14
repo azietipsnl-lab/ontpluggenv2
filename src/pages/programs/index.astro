@@ -1,0 +1,80 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Card from '../../components/Card.astro';
+import { loadQuery } from '../../sanity/load';
+import { programsQuery } from '../../sanity/queries';
+import type { ProgramListItem } from '../../sanity/types';
+import { formatPrice } from '../../lib/format';
+
+let programs: ProgramListItem[] = [];
+try {
+	programs = (await loadQuery<ProgramListItem[]>(programsQuery)) ?? [];
+} catch {
+	programs = [];
+}
+
+const levelLabels: Record<string, string> = {
+	beginner: 'Beginner',
+	intermediate: 'Gevorderd',
+	advanced: 'Expert',
+};
+---
+
+<Layout
+	title="Programma's"
+	description="Begeleide programma's om bewuster met technologie om te gaan."
+>
+	<main class="section">
+		<div class="container">
+			<header class="page-head stack">
+				<p class="eyebrow">Programma's</p>
+				<h1>Begeleide wegen naar rust</h1>
+			</header>
+
+			{
+				programs.length === 0 ? (
+					<p class="empty">Er zijn nog geen programma's beschikbaar.</p>
+				) : (
+					<ul class="card-grid">
+						{programs.map((program) => (
+							<li>
+								<Card
+									href={`/programs/${program.slug}`}
+									title={program.title}
+									image={program.coverImage}
+									imageAspect="4 / 3"
+									description={program.summary}
+									variant="boxed"
+								>
+									<Fragment slot="footer">
+										{program.level && (
+											<span>{levelLabels[program.level] ?? program.level}</span>
+										)}
+										{program.duration && <span>{program.duration}</span>}
+										<span class="program-price">{formatPrice(program.price)}</span>
+									</Fragment>
+								</Card>
+							</li>
+						))}
+					</ul>
+				)
+			}
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.page-head {
+		margin-bottom: var(--space-16);
+	}
+
+	.empty {
+		color: var(--text-muted);
+	}
+
+	.program-price {
+		margin-left: auto;
+		font-weight: var(--weight-semibold);
+		color: var(--accent);
+	}
+</style>
